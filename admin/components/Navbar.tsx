@@ -1,4 +1,5 @@
-import { UserButton, auth } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
+import { auth, isLocalDemo } from "@/lib/auth";
 import React from "react";
 import MainNav from "./main-nav";
 import StoreSwitcher from "@/components/store-switcher";
@@ -26,7 +27,7 @@ const Navbar = async (props: Props) => {
         <StoreSwitcher items={stores} />
         <MainNav className="mx-6" />
         <div className="ml-auto flex items-center space-x-4">
-          <UserButton afterSignOutUrl="/" />
+          {isLocalDemo ? <span className="text-xs text-muted-foreground">Local demo</span> : <UserButton afterSignOutUrl="/" />}
         </div>
       </div>
     </div>

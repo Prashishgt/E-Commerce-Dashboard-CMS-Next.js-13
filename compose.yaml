@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: shop
+      POSTGRES_DB: shop
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - shop-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop -d shop"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  admin:
+    build: ./admin
+    command: sh -c "npm run db:push && npm run db:seed && npm run dev -- -H 0.0.0.0 -p 3001"
+    environment:
+      DATABASE_URL: postgresql://shop:shop@postgres:5432/shop?schema=public
+      LOCAL_DEMO_MODE: "true"
+      NEXT_PUBLIC_STOREFRONT_URL: http://localhost:3000
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - ./admin:/app
+      - admin-modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+  client:
+    build: ./client
+    command: npm run dev -- -H 0.0.0.0 -p 3000
+    environment:
+      ADMIN_API_URL: http://admin:3001
+      NEXT_PUBLIC_STORE_ID: demo-store
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./client:/app
+      - client-modules:/app/node_modules
+    depends_on:
+      - admin
+
+volumes:
+  shop-postgres:
+  admin-modules:
+  client-modules:

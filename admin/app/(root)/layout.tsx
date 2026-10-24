@@ -1,5 +1,5 @@
 import prismaDb from "@/lib/prismadb";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import React from "react";
 

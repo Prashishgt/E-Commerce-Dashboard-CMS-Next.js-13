@@ -1,81 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, Trash } from "lucide-react";
-import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Trash } from "lucide-react";
 
-import { CldUploadWidget } from "next-cloudinary";
-
-interface ImageUploadPropsI {
+interface ImageUploadProps {
   disabled?: boolean;
   onChange: (value: string) => void;
   onRemove: (value: string) => void;
   value: string[];
 }
 
-const ImageUpload = ({
-  onChange,
-  onRemove,
-  disabled,
-  value,
-}: ImageUploadPropsI) => {
-  const [isMounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const onUpload = (result: any) => {
-    onChange(result.info.secure_url);
+export default function ImageUpload({ disabled, onChange, onRemove, value }: ImageUploadProps) {
+  const [url, setUrl] = useState("");
+  const [error, setError] = useState("");
+  const add = () => {
+    try {
+      const parsed = new URL(url);
+      if (!["https:", "http:"].includes(parsed.protocol)) throw new Error();
+      onChange(parsed.toString());
+      setUrl("");
+      setError("");
+    } catch {
+      setError("Enter a valid image URL starting with https:// or http://.");
+    }
   };
-
-  if (!isMounted) {
-    return null;
-  }
-  return (
-    <div>
-      <div className="mb-4 flex items-center gap-4">
-        {value.map((url) => (
-          <div
-            key={url}
-            className="relative w-[120px] h-[120px] rounded=md overflow-hidden"
-          >
-            <div className="z-10 absolute top-2 right-2">
-              <Button
-                type="button"
-                onClick={() => onRemove(url)}
-                variant="destructive"
-                size="icon"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-            <Image fill className="object-cover" alt="Image" src={url} />
-          </div>
-        ))}
-      </div>
-      <CldUploadWidget onUpload={onUpload} uploadPreset="cyp9xqqi">
-        {({ open }) => {
-          const onClick = () => {
-            open();
-          };
-          return (
-            <Button
-              type="button"
-              disabled={disabled}
-              variant="secondary"
-              onClick={onClick}
-              className="hover:bg-slate-300"
-            >
-              <ImagePlus className="h-4 w-4 mr-2" />
-              Upload an Image
-            </Button>
-          );
-        }}
-      </CldUploadWidget>
+  return <div className="space-y-3">
+    <div className="flex flex-wrap gap-3">
+      {value.map((image) => <div key={image} className="relative h-28 w-28 overflow-hidden rounded-md bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image} alt="Catalog preview" className="h-full w-full object-cover" />
+        <Button type="button" size="icon" variant="destructive" className="absolute right-1 top-1 h-7 w-7" disabled={disabled} onClick={() => onRemove(image)} aria-label="Remove image"><Trash className="h-3 w-3" /></Button>
+      </div>)}
     </div>
-  );
-};
-
-export default ImageUpload;
+    <div className="flex max-w-xl gap-2"><Input value={url} disabled={disabled} onChange={(event) => setUrl(event.target.value)} placeholder="https://example.com/image.jpg" aria-label="Image URL" /><Button type="button" variant="secondary" disabled={disabled || !url} onClick={add}>Add image URL</Button></div>
+    {error && <p className="text-sm text-red-600">{error}</p>}
+    <p className="text-xs text-muted-foreground">Paste a public image URL. No cloud account needed.</p>
+  </div>;
+}

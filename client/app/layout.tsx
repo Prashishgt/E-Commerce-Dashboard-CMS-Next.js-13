@@ -1,29 +1,29 @@
-import { Urbanist } from "next/font/google";
 import type { Metadata } from "next";
 
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
+import { CartProvider } from "@/components/cart-provider";
+import { getCategories, getStore } from "@/lib/store";
 
 import "./globals.css";
 
-const font = Urbanist({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "Store",
-  description: "Store",
+  title: "Sunday Supply | Everyday essentials",
+  description: "Thoughtful goods for everyday living.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [categories, store] = await Promise.all([getCategories(), getStore()]);
   return (
     <html lang="en">
-      <body className={font.className}>
-        <Navbar />
+      <body>
+        <CartProvider><Navbar categories={categories} name={store.name} />
         {children}
-        <Footer />
+        <Footer /></CartProvider>
       </body>
     </html>
   );

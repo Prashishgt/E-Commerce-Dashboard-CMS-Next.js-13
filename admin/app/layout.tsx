@@ -19,15 +19,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
-          <ToasterProvider />
-          <ModalProvider />
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
-  );
+  const content = <html lang="en"><body className={inter.className}>
+    <ToasterProvider /><ModalProvider />{children}
+  </body></html>;
+  return process.env.LOCAL_DEMO_MODE === "true" ? content : <ClerkProvider>{content}</ClerkProvider>;
 }
